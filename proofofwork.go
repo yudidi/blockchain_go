@@ -14,9 +14,13 @@ var (
 
 const targetBits = 24
 
+//todo 传入一个区块
+// （已有3个属性值【数据data，时间戳timestamp，副区块prehash】
+// 需要计算2个属性值：然后由pow暴力计算一个nonce及满足条件的hash
+
 // ProofOfWork represents a proof-of-work
 type ProofOfWork struct {
-	block  *Block
+	block  *Block //todo
 	target *big.Int
 }
 
