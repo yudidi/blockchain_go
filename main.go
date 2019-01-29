@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+// YDD：这个demo，体现了区块链，作为一种数据库的功能。
+// 通过把数据data存放到块中，达到不可篡改到目的
 func main() {
 	bc := NewBlockchain()
 

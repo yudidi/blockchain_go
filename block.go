@@ -18,6 +18,8 @@ type Block struct {
 // SetHash calculates and sets block hash
 func (b *Block) SetHash() {
 	timestamp := []byte(strconv.FormatInt(b.Timestamp, 10))
+	// ydd：[]byte视为string. [][]byte == []string  字符数组
+	// 把字符串数组到每个字符串使用一个seq拼接起来，成为一个新的字符串。
 	headers := bytes.Join([][]byte{b.PrevBlockHash, b.Data, timestamp}, []byte{})
 	hash := sha256.Sum256(headers)
 
