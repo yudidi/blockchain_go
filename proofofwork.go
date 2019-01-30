@@ -13,7 +13,8 @@ var (
 	maxNonce = math.MaxInt64
 )
 
-const targetBits = 8 //24
+// 挖矿难度值 叫difficulty更直观
+const targetBits = 4 //24
 
 //todo 一个区块共5个属性
 // 1. 传入一个区块(含3个属性)，然后计算出剩下的2个属性。
@@ -23,7 +24,8 @@ const targetBits = 8 //24
 
 // ProofOfWork represents a proof-of-work
 type ProofOfWork struct {
-	block  *Block //todo
+	block *Block //todo
+	//当前难度值下,合法hash的上界。叫maxValidHash更直观
 	target *big.Int
 }
 
