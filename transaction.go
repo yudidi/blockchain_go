@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-//subsidy 是奖励的数额。
+// subsidy 是奖励的数额。
 // 在比特币中，实际并没有存储这个数字，而是基于区块总数进行计算而得：区块总数除以 210000 就是 subsidy. 挖出创世块的奖励是 50 BTC，每挖出 210000 个块后，奖励减半。
 // 在我们的实现中，这个奖励值将会是一个常量（至少目前是）。
 const subsidy = 10
@@ -40,8 +40,28 @@ func (tx *Transaction) SetID() {
 	tx.ID = hash[:]
 }
 
+// TODO
+//========================
+// UTXO: 表示某交易中的未使用的某个输出
+type UTXO struct {
+	// 包含该UTXO的那个交易的ID
+	Txid []byte
+	// 该交易输出在该交易所有交易输出中的索引
+	Index int
+}
+
+// 交易输入中包含一个UTXO和一个解锁脚本，所以结构体应该是这样
+type TXIn struct {
+	Utxo            UTXO
+	unlockingScript string
+}
+
+//========================
+
 // TXInput represents a transaction input
 type TXInput struct {
+	// TODO FAQ Q： 一个交易输入结构体TXInput应该包含1个还是多个UTXO呢
+	// Txid 和 Vout 唯一标识一个UTXO
 	Txid      []byte
 	Vout      int
 	ScriptSig string
