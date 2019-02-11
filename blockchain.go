@@ -15,6 +15,7 @@ const genesisCoinbaseData = "The Times 03/Jan/2009 Chancellor on brink of second
 
 // Blockchain implements interactions with a DB
 type Blockchain struct {
+	// tip存储最后一个块的哈希。tip有尾部，尖端的意思
 	tip []byte
 	db  *bolt.DB
 }
@@ -225,20 +226,23 @@ func CreateBlockchain(address string) *Blockchain {
 		log.Panic(err)
 	}
 
+	// 创建coinbase交易，然后
 	err = db.Update(func(tx *bolt.Tx) error {
+		// 创建coinbase交易
 		cbtx := NewCoinbaseTX(address, genesisCoinbaseData)
+		// 使用coinbase交易，创建创世区块
 		genesis := NewGenesisBlock(cbtx)
-
+		// 在数据库中创建一个名为"blocks"的bucket。可以理解为一张表，表中的每条记录是一个区块。
 		b, err := tx.CreateBucket([]byte(blocksBucket))
 		if err != nil {
 			log.Panic(err)
 		}
-
+		// 把创世区块存取数据库
 		err = b.Put(genesis.Hash, genesis.Serialize())
 		if err != nil {
 			log.Panic(err)
 		}
-
+		// 存入最后一个区块的hash值
 		err = b.Put([]byte("l"), genesis.Hash)
 		if err != nil {
 			log.Panic(err)
