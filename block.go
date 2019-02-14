@@ -30,6 +30,9 @@ func (b *Block) Serialize() []byte {
 	return result.Bytes()
 }
 
+// todo: 把所有交易的ID【字节数组】放入一个数组【二维字节数组】中，返回这个二维字节数组的哈希值【哈希函数采用sha256】，作为块中所有交易的一个整体标示。
+// TODO Q：我们想要通过仅仅一个哈希，就可以识别一个块里面的所有交易。
+//  A：???
 // HashTransactions returns a hash of the transactions in the block
 func (b *Block) HashTransactions() []byte {
 	var txHashes [][]byte

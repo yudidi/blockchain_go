@@ -23,6 +23,10 @@ type Transaction struct {
 
 // IsCoinbase checks whether the transaction is coinbase
 func (tx Transaction) IsCoinbase() bool {
+	// todo:
+	//  Q：为什么coinbase交易只能有一个交易输入
+	//  A：coinbase交易的交易输入没有UTXO，但是有一个锁定脚本。
+	//  只有一个交易输入 && 没有UTXO(所以交易输入对应的2个属性没有被赋值)
 	return len(tx.Vin) == 1 && len(tx.Vin[0].Txid) == 0 && tx.Vin[0].Vout == -1
 }
 
@@ -79,17 +83,24 @@ func (in *TXInput) CanUnlockOutputWith(unlockingData string) bool {
 }
 
 // CanBeUnlockedWith checks if the output can be unlocked with the provided data
+//todo P2PKH
+// 验证这个交易输出是否是支付给unlockingData
+// 比特币交易中：解锁脚本(签名+公钥) || 我们的简化交易中：解锁脚本(收款人)
+// 对于P2PKH交易实现的理解，付款给公钥 简化为 付款给一个字符串
 func (out *TXOutput) CanBeUnlockedWith(unlockingData string) bool {
-	return out.ScriptPubKey == unlockingData
+	return out.ScriptPubKey == unlockingData //todo unlockingData -->  payee收款人。公钥就是比特币交易中的收款人
 }
 
+// todo：因为还没有实现奖励制度，所以目前只有创建创世区块时，会涉及到coinbase交易。
+//   如果之后加入了奖励，那么在每个新块产生时，都会有奖励，也就有coinbase。
+// todo 矿工挖出新块时，它会向新块中添加一个coinbase交易。这个交易 只有唯一到一个交易输入，并且这个交易输入没有UTXO，只有锁定脚本。
 // NewCoinbaseTX creates a new coinbase transaction
-func NewCoinbaseTX(to, data string) *Transaction {
-	if data == "" {
-		data = fmt.Sprintf("Reward to '%s'", to)
+func NewCoinbaseTX(to, lockingScript string) *Transaction {
+	if lockingScript == "" {
+		lockingScript = fmt.Sprintf("Reward to '%s'", to)
 	}
 
-	txin := TXInput{[]byte{}, -1, data}
+	txin := TXInput{[]byte{}, -1, lockingScript} //todo:  coinbase交易没有输入UTXO，只需要传递一个锁定脚本即可
 	txout := TXOutput{subsidy, to}
 	tx := Transaction{nil, []TXInput{txin}, []TXOutput{txout}}
 	tx.SetID()
