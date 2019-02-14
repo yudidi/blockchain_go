@@ -61,18 +61,21 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) {
 	})
 }
 
+// todo 找到包含UTXO的所有交易
+// address：
 // FindUnspentTransactions returns a list of transactions containing unspent outputs
 func (bc *Blockchain) FindUnspentTransactions(address string) []Transaction {
 	var unspentTXs []Transaction
 	spentTXOs := make(map[string][]int)
 	bci := bc.Iterator()
-
+	// ydd：通过迭代器遍历区块链中所有区块：block
 	for {
 		block := bci.Next()
 
+		// ydd：遍历区块block中的所有交易
 		for _, tx := range block.Transactions {
 			txID := hex.EncodeToString(tx.ID)
-
+			// todo 循环中使用跳转标签，可以省去如C语言 flag 这样的判断
 		Outputs:
 			for outIdx, out := range tx.Vout {
 				// Was the output spent?
