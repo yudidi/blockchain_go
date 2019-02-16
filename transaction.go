@@ -66,8 +66,9 @@ type TXIn struct {
 type TXInput struct {
 	// TODO FAQ Q： 一个交易输入结构体TXInput应该包含1个还是多个UTXO呢
 	// Txid 和 Vout 唯一标识一个UTXO
-	Txid      []byte
-	Vout      int
+	Txid []byte
+	Vout int
+	// todo ScriptSig：表示
 	ScriptSig string
 }
 
@@ -77,18 +78,20 @@ type TXOutput struct {
 	ScriptPubKey string
 }
 
+// todo 判断这个交易输入，能否被解锁
+//  比特币交易中：锁定脚本(公钥) || 我们的简化交易中：锁定脚本 == 收款人字符串
 // CanUnlockOutputWith checks whether the address initiated the transaction
 func (in *TXInput) CanUnlockOutputWith(unlockingData string) bool {
 	return in.ScriptSig == unlockingData
 }
 
 // CanBeUnlockedWith checks if the output can be unlocked with the provided data
-//todo P2PKH
-// 验证这个交易输出是否是支付给unlockingData
+//todo 简化版的P2PKH -> P2SomeOne
+// 判断这个交易，是否是支付给lockingData的
 // 比特币交易中：解锁脚本(签名+公钥) || 我们的简化交易中：解锁脚本(收款人)
 // 对于P2PKH交易实现的理解，付款给公钥 简化为 付款给一个字符串
-func (out *TXOutput) CanBeUnlockedWith(unlockingData string) bool {
-	return out.ScriptPubKey == unlockingData //todo unlockingData -->  payee收款人。公钥就是比特币交易中的收款人
+func (out *TXOutput) CanBeUnlockedWith(lockingData string) bool {
+	return out.ScriptPubKey == lockingData //todo unlockingData -->  payee收款人。公钥就是比特币交易中的收款人
 }
 
 // todo：因为还没有实现奖励制度，所以目前只有创建创世区块时，会涉及到coinbase交易。

@@ -61,40 +61,46 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) {
 	})
 }
 
-// todo 找到包含UTXO的所有交易
-// address：
+// todo 找到支付给address的 所有未使用交易输出 所在的交易。=== 找到address拥有的所有UTXO所在的交易。
+//  Q：为什么不能直接返回UTXO集合呢，非要返回其所在的交易。
+// address：收款人
 // FindUnspentTransactions returns a list of transactions containing unspent outputs
 func (bc *Blockchain) FindUnspentTransactions(address string) []Transaction {
 	var unspentTXs []Transaction
+	//  ydd：存放所有交易已经用掉的交易输出。 key：交易ID  value：该交易已经用过的所有交易输出。即这些交易输出不能再被使用。
 	spentTXOs := make(map[string][]int)
 	bci := bc.Iterator()
 	// ydd：通过迭代器遍历区块链中所有区块：block
 	for {
 		block := bci.Next()
-
 		// ydd：遍历区块block中的所有交易
 		for _, tx := range block.Transactions {
-			txID := hex.EncodeToString(tx.ID)
-			// todo 循环中使用跳转标签，可以省去如C语言 flag 这样的判断
+			txID := hex.EncodeToString(tx.ID) //txID：交易的ID
+
 		Outputs:
-			for outIdx, out := range tx.Vout {
+			// todo 外循环：遍历该交易的所有输出 +
+			//  内循环：检查交易输出是否被使用过，if使用过，跳出内循环，继续外循环，else 没有使用过，检查该交易输出是否是支付给当前用户的，如果是，则被当前交易放入结果集合
+			for outIdx, out := range tx.Vout { // outIdx：该交易输出在交易输出数组的索引【spentTXOs这个map的value存放的就是该值】, out：这个交易输出本身
 				// Was the output spent?
-				if spentTXOs[txID] != nil {
-					for _, spentOut := range spentTXOs[txID] {
-						if spentOut == outIdx {
-							continue Outputs
+				if spentTXOs[txID] != nil { // ydd：判断这个交易是否有TXO被使用过。 ==nil，则说明交易输出都没有使用过;  !=nil, 说明有交易输出被使用过
+					// ydd：遍历该交易中，被使用过的交易输出
+					for _, spentOut := range spentTXOs[txID] { // spentTXOs[txID]：使用 spentOut：
+						if spentOut == outIdx { // ydd：该交易输出out，已经被使用过，不放入结果中。
+							continue Outputs // ydd：结束内层循环，直接回到外层循环
 						}
 					}
 				}
-
+				// ydd：验证该交易输出是支付给当前用户的。把这个交易输出所在的交易放入 unspentTXs中。
 				if out.CanBeUnlockedWith(address) {
 					unspentTXs = append(unspentTXs, *tx)
 				}
 			}
 
+			// todo 把已经被用过的交易输出放入到spentTXOs中。【也就是那些被包含在】
+			// ydd：如果交易是coinbase交易，
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.Vin {
-					if in.CanUnlockOutputWith(address) {
+					if in.CanUnlockOutputWith(address) { // 【验证当前用户是否可以解锁UTXO】
 						inTxID := hex.EncodeToString(in.Txid)
 						spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
 					}
@@ -112,9 +118,9 @@ func (bc *Blockchain) FindUnspentTransactions(address string) []Transaction {
 
 // FindUTXO finds and returns all unspent transaction outputs
 func (bc *Blockchain) FindUTXO(address string) []TXOutput {
+	// 1。 扫描区块链 + 找到属于该用户用的所有UTXO
 	var UTXOs []TXOutput
 	unspentTransactions := bc.FindUnspentTransactions(address)
-
 	for _, tx := range unspentTransactions {
 		for _, out := range tx.Vout {
 			if out.CanBeUnlockedWith(address) {

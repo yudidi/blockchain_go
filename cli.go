@@ -17,6 +17,8 @@ func (cli *CLI) createBlockchain(address string) {
 	fmt.Println("Done!")
 }
 
+// todo Q：如何计算比特币钱包中帐户余额
+//  A: 扫描区块链 + 找到属于该用户用的所有UTXO + 聚合这些UTXOs => 得到用户余额
 func (cli *CLI) getBalance(address string) {
 	bc := NewBlockchain(address)
 	defer bc.db.Close()
