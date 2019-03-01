@@ -27,7 +27,7 @@ func NewWallets() (*Wallets, error) {
 
 // CreateWallet adds a Wallet to Wallets
 func (ws *Wallets) CreateWallet() string {
-	wallet := NewWallet()
+	wallet := NewWallet() // todo 每次创建一个钱包，都产生一个新的地址，所以这个钱包盒子需要能存储多个钱包。
 	address := fmt.Sprintf("%s", wallet.GetAddress())
 
 	ws.Wallets[address] = wallet

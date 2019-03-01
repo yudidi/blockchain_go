@@ -141,6 +141,7 @@ func (bc *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
 	return Transaction{}, errors.New("Transaction is not found")
 }
 
+// 查找支付给pubKeyHash的交易输出，将这些交易输出所在的所有交易，返回。
 // FindUnspentTransactions returns a list of transactions containing unspent outputs
 func (bc *Blockchain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
 	var unspentTXs []Transaction
@@ -155,7 +156,7 @@ func (bc *Blockchain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
 
 		Outputs:
 			for outIdx, out := range tx.Vout {
-				// Was the output spent?
+				// Was the output spent? //判断这个交易输出是否被使用了
 				if spentTXOs[txID] != nil {
 					for _, spentOutIdx := range spentTXOs[txID] {
 						if spentOutIdx == outIdx {
@@ -164,15 +165,20 @@ func (bc *Blockchain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
 					}
 				}
 
+				// 判断是不是支付这个pubKeyHash的，如果是，那么可以使用它。这笔交易也就包含支付给pubKeyHash的UTXO
 				if out.IsLockedWithKey(pubKeyHash) {
 					unspentTXs = append(unspentTXs, *tx)
 				}
 			}
 
+			// TODO 只能从交易输入，反推哪些交易输出被使用过。
+			// 寻找已经使用的交易输出【一定是在某个交易输入中被使用的】
+			// 【交易输入 = pre交易输出+解锁脚本 】也就是说，一个解锁脚本的出现，也就意味着一个交易输出被使用。而每个脚本中都有公钥哈希，意味这个公钥哈希的一个交易输出被使用了。
+			// FindUsedTXO。遍历所有的交易输入【除了创世交易，因为创世交易没有交易输入】，判断其是否出现在解锁脚本中，
 			if tx.IsCoinbase() == false {
-				for _, in := range tx.Vin {
-					if in.UsesKey(pubKeyHash) {
-						inTxID := hex.EncodeToString(in.Txid)
+				for _, in := range tx.Vin { //遍历交易输入中解锁脚本中的公钥哈希pkh，如果公钥哈希pkh==pubKeyHash，则证明该pkh所在的解锁脚本对应的交易输出被是使用了，放入spentTXOs
+					if in.UsesKey(pubKeyHash) { //交易
+						inTxID := hex.EncodeToString(in.Txid) //
 						spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
 					}
 				}
