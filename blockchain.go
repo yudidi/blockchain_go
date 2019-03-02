@@ -98,20 +98,23 @@ func NewBlockchain(address string) *Blockchain {
 // FindSpendableOutputs finds and returns unspent outputs to reference in inputs
 func (bc *Blockchain) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string][]int) {
 	unspentOutputs := make(map[string][]int)
-	unspentTXs := bc.FindUnspentTransactions(pubKeyHash)
 	accumulated := 0
+	if amount <= 0 {
+		return accumulated, unspentOutputs
+	}
+	unspentTXs := bc.FindUnspentTransactions(pubKeyHash)
 
 Work:
 	for _, tx := range unspentTXs {
 		txID := hex.EncodeToString(tx.ID)
 
 		for outIdx, out := range tx.Vout {
-			if out.IsLockedWithKey(pubKeyHash) && accumulated < amount {
+			if out.IsLockedWithKey(pubKeyHash) && accumulated < amount { //条件1：因为输出可能是支付给其他公钥哈希，所以需要判断一下是否是支付给pubKeyHash的。//条件2：不是必须的。
 				accumulated += out.Value
 				unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
 
 				if accumulated >= amount {
-					break Work
+					break Work //跳出循环，且不在进入循环
 				}
 			}
 		}
