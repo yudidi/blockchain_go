@@ -95,6 +95,10 @@ func NewBlockchain(address string) *Blockchain {
 	return &bc
 }
 
+/**
+1。 遍历所有交易的交易输出，使用公钥哈希对所有交易输出进行过滤，可以获得支付给该公钥哈希的所有交易输出all。-- All-TXO
+2。 然后遍历所有的交易输入，从所有交易输出all中，去除掉已经被使用过的交易输出，就可以得到未使用的交易输出。-- UTXO == All-TXO  - Used TXO
+*/
 // FindSpendableOutputs finds and returns unspent outputs to reference in inputs
 func (bc *Blockchain) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string][]int) {
 	unspentOutputs := make(map[string][]int)

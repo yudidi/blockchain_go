@@ -20,6 +20,7 @@ func (out *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {
 	return bytes.Compare(out.PubKeyHash, pubKeyHash) == 0
 }
 
+// 创建一个交易输出，并且锁定这个交易输出。
 // NewTXOutput create a new TXOutput
 func NewTXOutput(value int, address string) *TXOutput {
 	txo := &TXOutput{value, nil}
