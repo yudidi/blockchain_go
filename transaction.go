@@ -68,6 +68,10 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 
 	txCopy := tx.TrimmedCopy()
 
+	// TODO 我仍然不知道为什么要这样进行签名？
+	// 通过分析一下代码的执行过程，有2点结论
+	// 1. 交易签名，实质就是设置每个交易输入对Signature字段
+	// 2. 每个交易输入都需要设置Singnature字段，但是这件事不能并行签名，因为每个交易输入对签名计算，都依赖于之前交易输入的签名。
 	for inID, vin := range txCopy.Vin {
 		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
 		txCopy.Vin[inID].Signature = nil
