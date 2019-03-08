@@ -6,9 +6,9 @@ import "bytes"
 type TXInput struct {
 	Txid []byte
 	// 该交易输入使用的pre交易输出的序号
-	IndexOfPre int
-	Signature  []byte
-	PubKey     []byte
+	IndexOfPreOutput int
+	Signature        []byte
+	PubKey           []byte
 }
 
 // UsesKey checks whether the address initiated the transaction

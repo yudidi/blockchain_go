@@ -154,7 +154,7 @@ func (u UTXOSet) Update(block *Block) {
 					outs := DeserializeOutputs(outsBytes)
 
 					for outIdx, out := range outs.Outputs {
-						if outIdx != vin.IndexOfPre {
+						if outIdx != vin.IndexOfPreOutput {
 							updatedOuts.Outputs = append(updatedOuts.Outputs, out)
 						}
 					}
