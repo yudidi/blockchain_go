@@ -4,10 +4,11 @@ import "bytes"
 
 // TXInput represents a transaction input
 type TXInput struct {
-	Txid      []byte
-	Vout      int
-	Signature []byte
-	PubKey    []byte
+	Txid []byte
+	// 该交易输入使用的pre交易输出的序号
+	IndexOfPre int
+	Signature  []byte
+	PubKey     []byte
 }
 
 // UsesKey checks whether the address initiated the transaction

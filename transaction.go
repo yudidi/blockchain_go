@@ -25,7 +25,7 @@ type Transaction struct {
 
 // IsCoinbase checks whether the transaction is coinbase
 func (tx Transaction) IsCoinbase() bool {
-	return len(tx.TxInputs) == 1 && len(tx.TxInputs[0].Txid) == 0 && tx.TxInputs[0].Vout == -1
+	return len(tx.TxInputs) == 1 && len(tx.TxInputs[0].Txid) == 0 && tx.TxInputs[0].IndexOfPre == -1
 }
 
 // Serialize returns a serialized Transaction
@@ -76,7 +76,7 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 	for inID, vin := range txCopy.TxInputs {
 		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
 		txCopy.TxInputs[inID].Signature = nil
-		txCopy.TxInputs[inID].PubKey = prevTx.TxOutputs[vin.Vout].PubKeyHash
+		txCopy.TxInputs[inID].PubKey = prevTx.TxOutputs[vin.IndexOfPre].PubKeyHash
 		txCopy.ID = txCopy.Hash()
 		txCopy.TxInputs[inID].PubKey = nil
 
@@ -100,7 +100,7 @@ func (tx Transaction) String() string {
 
 		lines = append(lines, fmt.Sprintf("     Input %d:", i))
 		lines = append(lines, fmt.Sprintf("       TXID:      %x", input.Txid))
-		lines = append(lines, fmt.Sprintf("       Out:       %d", input.Vout))
+		lines = append(lines, fmt.Sprintf("       Out:       %d", input.IndexOfPre))
 		lines = append(lines, fmt.Sprintf("       Signature: %x", input.Signature))
 		lines = append(lines, fmt.Sprintf("       PubKey:    %x", input.PubKey))
 	}
@@ -120,7 +120,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	var outputs []TXOutput
 
 	for _, vin := range tx.TxInputs {
-		inputs = append(inputs, TXInput{vin.Txid, vin.Vout, nil, nil})
+		inputs = append(inputs, TXInput{vin.Txid, vin.IndexOfPre, nil, nil})
 	}
 
 	for _, vout := range tx.TxOutputs {
@@ -150,7 +150,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 	for inID, vin := range tx.TxInputs {
 		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
 		txCopy.TxInputs[inID].Signature = nil
-		txCopy.TxInputs[inID].PubKey = prevTx.TxOutputs[vin.Vout].PubKeyHash
+		txCopy.TxInputs[inID].PubKey = prevTx.TxOutputs[vin.IndexOfPre].PubKeyHash
 		txCopy.ID = txCopy.Hash()
 		txCopy.TxInputs[inID].PubKey = nil
 

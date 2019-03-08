@@ -147,7 +147,7 @@ func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.TxInputs {
 					inTxID := hex.EncodeToString(in.Txid)
-					spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
+					spentTXOs[inTxID] = append(spentTXOs[inTxID], in.IndexOfPre)
 				}
 			}
 		}
