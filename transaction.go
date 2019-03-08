@@ -6,12 +6,11 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
-	"math/big"
-
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
 	"log"
+	"math/big"
 	"strings"
 )
 
@@ -54,6 +53,12 @@ func (tx *Transaction) Hash() []byte {
 	return hash[:]
 }
 
+/**
+输入：
+privKey：私钥
+prevTXs：之前的UTXO对应的交易
+1。
+*/
 // Sign signs each input of a Transaction
 func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
 	if tx.IsCoinbase() {
@@ -190,6 +195,18 @@ func NewCoinbaseTX(to, data string) *Transaction {
 	return &tx
 }
 
+/**
+总的来说，创建交易 == 创建一组交易输入input + 一组交易输出output
+1。根据付款地址，选择一个钱包
+2。根据付款金额，获取足够的UTXOs用于支付
+3。todo 根据这些UTXOs创建一组交易输入inputs
+todo 创建1个或2个outputs
+4。创建一个交易输出output1
+5。如果还有找零，还需创建一个找零交易输出output2
+6。根据inputs和outputs，构造交易tx
+7。TODO 对交易tx进行签名
+8。返回该交易&tx
+*/
 // NewUTXOTransaction creates a new transaction
 func NewUTXOTransaction(from, to string, amount int, UTXOSet *UTXOSet) *Transaction {
 	var inputs []TXInput
