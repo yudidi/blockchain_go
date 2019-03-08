@@ -129,7 +129,7 @@ func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 			txID := hex.EncodeToString(tx.ID)
 
 		Outputs:
-			for outIdx, out := range tx.Vout {
+			for outIdx, out := range tx.TxOutputs {
 				// Was the output spent?
 				if spentTXOs[txID] != nil {
 					for _, spentOutIdx := range spentTXOs[txID] {
@@ -145,7 +145,7 @@ func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 			}
 
 			if tx.IsCoinbase() == false {
-				for _, in := range tx.Vin {
+				for _, in := range tx.TxInputs {
 					inTxID := hex.EncodeToString(in.Txid)
 					spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
 				}
@@ -216,7 +216,7 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
 	prevTXs := make(map[string]Transaction)
 
-	for _, vin := range tx.Vin {
+	for _, vin := range tx.TxInputs {
 		prevTX, err := bc.FindTransaction(vin.Txid)
 		if err != nil {
 			log.Panic(err)
@@ -235,7 +235,7 @@ func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
 
 	prevTXs := make(map[string]Transaction)
 
-	for _, vin := range tx.Vin {
+	for _, vin := range tx.TxInputs {
 		prevTX, err := bc.FindTransaction(vin.Txid)
 		if err != nil {
 			log.Panic(err)

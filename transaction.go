@@ -18,14 +18,14 @@ const subsidy = 10
 
 // Transaction represents a Bitcoin transaction
 type Transaction struct {
-	ID   []byte
-	Vin  []TXInput
-	Vout []TXOutput
+	ID        []byte
+	TxInputs  []TXInput
+	TxOutputs []TXOutput
 }
 
 // IsCoinbase checks whether the transaction is coinbase
 func (tx Transaction) IsCoinbase() bool {
-	return len(tx.Vin) == 1 && len(tx.Vin[0].Txid) == 0 && tx.Vin[0].Vout == -1
+	return len(tx.TxInputs) == 1 && len(tx.TxInputs[0].Txid) == 0 && tx.TxInputs[0].Vout == -1
 }
 
 // Serialize returns a serialized Transaction
@@ -65,7 +65,7 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		return
 	}
 
-	for _, vin := range tx.Vin {
+	for _, vin := range tx.TxInputs {
 		if prevTXs[hex.EncodeToString(vin.Txid)].ID == nil {
 			log.Panic("ERROR: Previous transaction is not correct")
 		}
@@ -73,12 +73,12 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 
 	txCopy := tx.TrimmedCopy()
 
-	for inID, vin := range txCopy.Vin {
+	for inID, vin := range txCopy.TxInputs {
 		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
-		txCopy.Vin[inID].Signature = nil
-		txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
+		txCopy.TxInputs[inID].Signature = nil
+		txCopy.TxInputs[inID].PubKey = prevTx.TxOutputs[vin.Vout].PubKeyHash
 		txCopy.ID = txCopy.Hash()
-		txCopy.Vin[inID].PubKey = nil
+		txCopy.TxInputs[inID].PubKey = nil
 
 		r, s, err := ecdsa.Sign(rand.Reader, &privKey, txCopy.ID)
 		if err != nil {
@@ -86,7 +86,7 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		}
 		signature := append(r.Bytes(), s.Bytes()...)
 
-		tx.Vin[inID].Signature = signature
+		tx.TxInputs[inID].Signature = signature
 	}
 }
 
@@ -96,7 +96,7 @@ func (tx Transaction) String() string {
 
 	lines = append(lines, fmt.Sprintf("--- Transaction %x:", tx.ID))
 
-	for i, input := range tx.Vin {
+	for i, input := range tx.TxInputs {
 
 		lines = append(lines, fmt.Sprintf("     Input %d:", i))
 		lines = append(lines, fmt.Sprintf("       TXID:      %x", input.Txid))
@@ -105,7 +105,7 @@ func (tx Transaction) String() string {
 		lines = append(lines, fmt.Sprintf("       PubKey:    %x", input.PubKey))
 	}
 
-	for i, output := range tx.Vout {
+	for i, output := range tx.TxOutputs {
 		lines = append(lines, fmt.Sprintf("     Output %d:", i))
 		lines = append(lines, fmt.Sprintf("       Value:  %d", output.Value))
 		lines = append(lines, fmt.Sprintf("       Script: %x", output.PubKeyHash))
@@ -119,11 +119,11 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	for _, vin := range tx.Vin {
+	for _, vin := range tx.TxInputs {
 		inputs = append(inputs, TXInput{vin.Txid, vin.Vout, nil, nil})
 	}
 
-	for _, vout := range tx.Vout {
+	for _, vout := range tx.TxOutputs {
 		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash})
 	}
 
@@ -138,7 +138,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 		return true
 	}
 
-	for _, vin := range tx.Vin {
+	for _, vin := range tx.TxInputs {
 		if prevTXs[hex.EncodeToString(vin.Txid)].ID == nil {
 			log.Panic("ERROR: Previous transaction is not correct")
 		}
@@ -147,12 +147,12 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 	txCopy := tx.TrimmedCopy()
 	curve := elliptic.P256()
 
-	for inID, vin := range tx.Vin {
+	for inID, vin := range tx.TxInputs {
 		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
-		txCopy.Vin[inID].Signature = nil
-		txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
+		txCopy.TxInputs[inID].Signature = nil
+		txCopy.TxInputs[inID].PubKey = prevTx.TxOutputs[vin.Vout].PubKeyHash
 		txCopy.ID = txCopy.Hash()
-		txCopy.Vin[inID].PubKey = nil
+		txCopy.TxInputs[inID].PubKey = nil
 
 		r := big.Int{}
 		s := big.Int{}
