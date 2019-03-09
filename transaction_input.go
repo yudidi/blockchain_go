@@ -4,7 +4,7 @@ import "bytes"
 
 // TXInput represents a transaction input
 type TXInput struct {
-	Txid []byte
+	PreTxid []byte
 	// 该交易输入使用的pre交易输出的序号
 	IndexOfPreOutput int
 	Signature        []byte

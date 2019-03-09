@@ -146,7 +146,7 @@ func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.TxInputs {
-					inTxID := hex.EncodeToString(in.Txid)
+					inTxID := hex.EncodeToString(in.PreTxid)
 					spentTXOs[inTxID] = append(spentTXOs[inTxID], in.IndexOfPreOutput)
 				}
 			}
@@ -213,18 +213,18 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 }
 
 // SignTransaction signs inputs of a Transaction
-func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
+func (bc *Blockchain) SignTransaction(curTx *Transaction, privKey ecdsa.PrivateKey) {
 	prevTXs := make(map[string]Transaction)
 
-	for _, vin := range tx.TxInputs {
-		prevTX, err := bc.FindTransaction(vin.Txid)
+	for _, vin := range curTx.TxInputs {
+		prevTX, err := bc.FindTransaction(vin.PreTxid)
 		if err != nil {
 			log.Panic(err)
 		}
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}
 
-	tx.Sign(privKey, prevTXs)
+	curTx.Sign(privKey, prevTXs)
 }
 
 // VerifyTransaction verifies transaction input signatures
@@ -236,7 +236,7 @@ func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range tx.TxInputs {
-		prevTX, err := bc.FindTransaction(vin.Txid)
+		prevTX, err := bc.FindTransaction(vin.PreTxid)
 		if err != nil {
 			log.Panic(err)
 		}
